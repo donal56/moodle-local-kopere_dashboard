@@ -90,7 +90,6 @@ class courses {
                     FROM {user} u2
                     JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
                         AND ue2.status = 0
-                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
                     JOIN {enrol} e2 ON e2.id = ue2.enrolid
                         AND e2.status = 0
                     JOIN {role_assignments} ra2 ON ra2.userid = u2.id
@@ -147,7 +146,6 @@ class courses {
                     FROM {user} u2
                     JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
                         AND ue2.status = 0
-                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
                     JOIN {enrol} e2 ON e2.id = ue2.enrolid
                         AND e2.status = 0
                     JOIN {role_assignments} ra2 ON ra2.userid = u2.id
@@ -195,7 +193,6 @@ class courses {
                     FROM {user} u2
                     JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
                         AND ue2.status = 0
-                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
                     JOIN {enrol} e2 ON e2.id = ue2.enrolid
                         AND e2.status = 0
                     JOIN {role_assignments} ra2 ON ra2.userid = u2.id
