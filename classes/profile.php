@@ -77,6 +77,8 @@ class profile {
      */
     public function list_courses($user_id) {
         global $DB;
+
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
         $courses = enrol_get_all_users_courses($user_id);
 
         if (!count($courses)) {
@@ -123,11 +125,11 @@ class profile {
                         <span class="status">' . $matriculastatus . '</span>
                     </h4>
                     <div>' . get_string_kopere('profile_enrol_start') . ' <em>' .
-                userdate($enrolment->timestart, get_string_kopere('dateformat')) . '</em> ' . $expirationend . ' -
-                        <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-edit"
+                userdate($enrolment->timestart, get_string_kopere('dateformat')) . '</em> ' . $expirationend . 
+                ($is_admin ? ' - <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-edit"
                                 data-href="load-ajax.php?classname=userenrolment&method=mathedit&courseid=' . $course->id .
-                '&ueid=' . $enrolment->id . '">' . get_string_kopere('profile_edit') . '</button>
-                    </div>
+                '&ueid=' . $enrolment->id . '">' . get_string_kopere('profile_edit') . '</button>' : '') .
+                '    </div>
                     <div class="roles">' . get_string_kopere('profile_enrol_profile') . ': ' . $rolehtml . '</div>
                 </li>';
         }
@@ -140,8 +142,10 @@ class profile {
      */
     public function get_user_info($user) {
         global $CFG;
+        
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
 
-        return '
+        $html = '
         <h3>' . get_string_kopere('profile_access_title') . '</h3>
         <p>' . get_string_kopere('profile_access_first') . '<br> <strong>' .
             userdate($user->firstaccess, get_string_kopere('dateformat')) . '</strong></p>
@@ -155,10 +159,16 @@ class profile {
         <p>' . $user->phone2 . '</p>
         <h3>' . get_string_kopere('profile_link_title') . '</h3>
         <p><a target="_blank" href="' . $CFG->wwwroot . '/user/profile.php?id=' . $user->id . '">' .
-            get_string_kopere('profile_link_profile') . '</a></p>
-        <p><a target="_blank" href="' . $CFG->wwwroot . '/user/editadvanced.php?id=' . $user->id . '">' .
-            get_string_kopere('profile_link_edit') . '</a></p>
-        <p><a target="_blank" href="' . $CFG->wwwroot . '/course/loginas.php?id=1&user=' . $user->id .
-            '&sesskey=' . sesskey() . '">' . get_string_kopere('profile_access') . '</a></p>';
+            get_string_kopere('profile_link_profile') . '</a></p>';
+
+        if($is_admin) {
+            $html .=
+            '<p><a target="_blank" href="' . $CFG->wwwroot . '/user/editadvanced.php?id=' . $user->id . '">' .
+                get_string_kopere('profile_link_edit') . '</a></p>
+            <p><a target="_blank" href="' . $CFG->wwwroot . '/course/loginas.php?id=1&user=' . $user->id .
+                '&sesskey=' . sesskey() . '">' . get_string_kopere('profile_access') . '</a></p>';
+        }
+
+        return $html;
     }
 }

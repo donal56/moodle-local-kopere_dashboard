@@ -553,3 +553,6 @@ $string['notification_local_kopere_pay'] = 'Kopere Pagamento';
 
 
 $string['privacy:metadata'] = 'The Kopere Dashboard plugin does not store any personal data.';
+
+$string['user'] = 'User';
+$string['system'] = 'System';

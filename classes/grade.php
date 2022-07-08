@@ -35,7 +35,36 @@ class grade {
      * @throws \dml_exception
      */
     public function get_last_grades() {
-        global $DB, $CFG;
+        global $DB, $CFG, $USER;
+
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                        JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
 
         $group = '';
         if ($CFG->dbtype == 'mysqli') {
@@ -55,6 +84,7 @@ class grade {
                        WHERE gi.courseid    = c.id 
                          AND gi.itemname   != 'Attendance'
                          AND gg.finalgrade IS NOT NULL
+                         $teacherCondition
                     $group
                     ORDER BY gi.timemodified DESC
                        LIMIT 10");

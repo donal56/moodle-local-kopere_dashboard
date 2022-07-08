@@ -77,7 +77,36 @@ class courses {
      * @throws \coding_exception
      */
     public function load_all_courses() {
-        global $DB;
+        global $DB, $USER;
+
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                        JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
 
         $data = $DB->get_records_sql(
             "SELECT c.id, c.fullname, c.shortname, c.visible,
@@ -91,7 +120,8 @@ class courses {
                             AND u.deleted = 0
                      ) AS inscritos
               FROM {course} c
-             WHERE c.id > 1"
+             WHERE c.id > 1 
+             $teacherCondition "
         );
 
         json::encode($data);
@@ -104,9 +134,38 @@ class courses {
      * @throws \coding_exception
      */
     public static function count_all($format) {
-        global $DB;
+        global $DB, $USER;
 
-        $count = $DB->get_record_sql('SELECT count(*) as num FROM {course} WHERE id > 1');
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                        JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
+
+        $count = $DB->get_record_sql("SELECT count(*) as num FROM {course} c WHERE id > 1 $teacherCondition");
 
         if ($format) {
             return number_format($count->num, 0, get_string('decsep', 'langconfig'),
@@ -123,9 +182,38 @@ class courses {
      * @throws \coding_exception
      */
     public static function count_all_visibles($format) {
-        global $DB;
+        global $DB, $USER;
 
-        $count = $DB->get_record_sql('SELECT count(*) as num FROM {course} WHERE id > 1 AND visible = 1');
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                        JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
+
+        $count = $DB->get_record_sql("SELECT count(*) as num FROM {course} c WHERE id > 1 AND visible = 1 $teacherCondition");
 
         if ($format) {
             return number_format($count->num, 0, get_string('decsep', 'langconfig'),

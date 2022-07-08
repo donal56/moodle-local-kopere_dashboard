@@ -42,6 +42,9 @@ class performancemonitor {
 
         $PAGE->requires->js_call_amd('local_kopere_dashboard/monitor', 'init');
 
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        if(!$is_admin) return '';
+
         return '
             <div class="element-content">
                 <div class="row">
@@ -108,8 +111,8 @@ class performancemonitor {
             return $us + $sy + $ni;
         }
 
-        return ' us: ' . number_format($us, 1, get_string('decsep', 'langconfig'), '') . '%, sys: ' .
-            number_format($ni, 1, get_string('decsep', 'langconfig'), '') . '%';
+        return ' ' . get_string_kopere('user') . ': ' . number_format($us, 1, get_string('decsep', 'langconfig'), '') . '%, ' . get_string_kopere('system') . ': ' .
+            number_format($sy, 1, get_string('decsep', 'langconfig'), '') . '%';
     }
 
     /**

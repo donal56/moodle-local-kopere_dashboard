@@ -549,3 +549,6 @@ $string['webpages_theme_report'] = 'O layout da página usado para relatórios';
 $string['webpages_allpages'] = 'Todas as páginas';
 
 $string['privacy:metadata'] = 'O plugin do Kopere Dashboard não armazena nenhum dado pessoal.';
+
+$string['user'] = 'Usuário';
+$string['system'] = 'Sistema';

@@ -38,7 +38,36 @@ class enroll {
      * @throws \dml_exception
      */
     public function last_enroll() {
-        global $DB;
+        global $DB, $USER;
+
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                    JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
 
         return $DB->get_records_sql("
                SELECT DISTINCT ue.id, ra.roleid, e.courseid, c.fullname, 
@@ -49,6 +78,7 @@ class enroll {
                  JOIN {context}          ctx ON ctx.instanceid = e.courseid
                  JOIN {course}           c   ON c.id = e.courseid
                 WHERE ra.contextid = ctx.id
+                $teacherCondition
              --  GROUP BY e.courseid, ue.userid
              ORDER BY ue.timemodified DESC
                 LIMIT 10");
@@ -60,9 +90,37 @@ class enroll {
      * @throws \dml_exception
      */
     public function ajax_dashboard() {
-        global $DB;
+        global $DB, $USER;
 
+        $current_user = $USER->id;
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
         $courseid = optional_param('courseid', 0, PARAM_INT);
+        $teacherCondition = '';
+
+        if(!$is_admin) {
+            $teacherCondition = "
+                AND EXISTS (
+                    SELECT 1 
+                    FROM {user} u2
+                    JOIN {user_enrolments} ue2 ON ue2.userid = u2.id
+                        AND ue2.status = 0
+                        AND (ue2.timeend = 0 OR ue2.timeend > UNIX_TIMESTAMP(NOW())) 
+                    JOIN {enrol} e2 ON e2.id = ue2.enrolid
+                        AND e2.status = 0
+                    JOIN {role_assignments} ra2 ON ra2.userid = u2.id
+                    JOIN {context} ct2 ON ct2.id = ra2.contextid 
+                        AND ct2.contextlevel = 50
+                    JOIN {course} c2 ON c2.id = ct2.instanceid 
+                        AND e2.courseid = c2.id
+                    JOIN {role} r2 ON r2.id = ra2.roleid 
+                        AND r2.shortname IN('teacher', 'editingteacher')
+                    WHERE u2.id = $current_user
+                        AND u2.suspended = 0 
+                        AND u2.deleted = 0
+                        AND c2.id = c.id
+                )
+            ";
+        }
 
         $sql
             = "SELECT DISTINCT ue.userid AS id, firstname, lastname, u.email, ue.status
@@ -72,6 +130,7 @@ class enroll {
                     LEFT JOIN {course} c ON c.id = e.courseid
                     LEFT JOIN {course_completions} cc ON cc.timecompleted > 0 AND cc.course = e.courseid and cc.userid = ue.userid
 		        WHERE c.id = :id AND u.id IS NOT NULL
+                $teacherCondition
 		     ";
 
         $result = $DB->get_records_sql($sql, array('id' => $courseid));

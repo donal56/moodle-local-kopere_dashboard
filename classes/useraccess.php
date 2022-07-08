@@ -19,6 +19,9 @@ class useraccess {
 
     public function dashboard() {
         global $PAGE;
+        
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        if(!$is_admin) throw new \coding_exception('Página solo permitida para administradores');
 
         dashboard_util::add_breadcrumb(get_string_kopere('useraccess_title'));
         dashboard_util::start_page();

@@ -69,13 +69,16 @@ class menu {
             ->set_methodname('dashboard')
             ->set_title(get_string_kopere('useraccess_title'))
             ->set_icon('users-access');
-        $menu .= dashboard_util::add_menu(
-            (new menu_util())
-                ->set_classname('users')
-                ->set_methodname('dashboard')
-                ->set_icon('users')
-                ->set_name(get_string_kopere('user_title'))
-                ->set_submenus($menuextra));
+
+        if($is_admin) {
+            $menu .= dashboard_util::add_menu(
+                (new menu_util())
+                    ->set_classname('users')
+                    ->set_methodname('dashboard')
+                    ->set_icon('users')
+                    ->set_name(get_string_kopere('user_title'))
+                    ->set_submenus($menuextra));
+        }
 
         $menu .= dashboard_util::add_menu(
             (new menu_util())
@@ -121,14 +124,15 @@ class menu {
                     ->set_methodname('dashboard')
                     ->set_icon('webpages')
                     ->set_name(get_string_kopere('webpages_title')));
+            
+            $menu .= dashboard_util::add_menu(
+                (new menu_util())
+                    ->set_classname('benchmark')
+                    ->set_methodname('test')
+                    ->set_icon('performace')
+                    ->set_name(get_string_kopere('benchmark_title')));
         }
 
-        $menu .= dashboard_util::add_menu(
-            (new menu_util())
-                ->set_classname('benchmark')
-                ->set_methodname('test')
-                ->set_icon('performace')
-                ->set_name(get_string_kopere('benchmark_title')));
 
         if ($is_admin && $CFG->dbtype == 'mysqli') {
             $menu .= dashboard_util::add_menu(
@@ -139,12 +143,15 @@ class menu {
                     ->set_name(get_string_kopere('backup_title')));
         }
 
-        $menu .= dashboard_util::add_menu(
-            (new menu_util())
-                ->set_classname('about')
-                ->set_methodname('dashboard')
-                ->set_icon('about')
-                ->set_name(get_string_kopere('about_title')));
+        if($is_admin) {
+            $menu .= dashboard_util::add_menu(
+                (new menu_util())
+                    ->set_classname('about')
+                    ->set_methodname('dashboard')
+                    ->set_icon('about')
+                    ->set_name(get_string_kopere('about_title')));
+        }
+        
         $menu .= "</ul>";
 
         return $menu;

@@ -51,7 +51,7 @@ class reports extends reports_admin {
         global $CFG, $DB;
 
         $is_admin = has_capability('moodle/site:config', \context_system::instance());
-        $is_edit = optional_param('edit', false, PARAM_INT);
+        $is_edit = optional_param('edit', false, PARAM_INT) && $is_admin;
 
         dashboard_util::add_breadcrumb(get_string_kopere('reports_title'));
         dashboard_util::start_page();
@@ -63,11 +63,20 @@ class reports extends reports_admin {
         if ($is_edit) {
             $koperereportcats = $DB->get_records('kopere_dashboard_reportcat');
         } else {
-            if ($type) {
-                $koperereportcats = $DB->get_records('kopere_dashboard_reportcat', array('type' => $type, 'enable' => 1));
-            } else {
-                $koperereportcats = $DB->get_records('kopere_dashboard_reportcat', array('enable' => 1));
+            $sql = "SELECT * FROM {kopere_dashboard_reportcat} WHERE enable = 1";
+            $params = [];
+            
+            if(!$is_admin) {
+                list($insql, $params) = $DB->get_in_or_equal([2, 6]);
+                $sql .= " AND id $insql ";
             }
+
+            if($type) {
+                $sql .= " AND type = :type ";
+                $params['type'] = $type;
+            }
+
+            $koperereportcats = $DB->get_records_sql($sql, $params);
         }
 
         /** @var kopere_dashboard_reportcat $koperereportcat */
@@ -318,9 +327,18 @@ class reports extends reports_admin {
     public static function global_menus() {
         global $DB, $CFG;
 
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
         $menus = array();
 
-        $koperereportcats = $DB->get_records('kopere_dashboard_reportcat', array('enable' => 1));
+        if(!$is_admin) {
+            list($insql, $inparams) = $DB->get_in_or_equal([2, 6]);
+            $sql = "SELECT * FROM {kopere_dashboard_reportcat} WHERE enable = 1 AND id $insql";
+            $koperereportcats = $DB->get_records_sql($sql, $inparams);
+        }
+        else {
+            $koperereportcats = $DB->get_records('kopere_dashboard_reportcat', ['enable' => 1]);
+        }
+
         /** @var kopere_dashboard_reportcat $koperereportcat */
         foreach ($koperereportcats as $koperereportcat) {
             // Executa o SQL e vrifica se o SQL retorna status>0.

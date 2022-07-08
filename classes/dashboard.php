@@ -70,20 +70,26 @@ class dashboard {
     }
 
     public function monitor() {
+
+        $is_admin = has_capability('moodle/site:config', \context_system::instance());
+        $url_users = $is_admin ? "?classname=users&method=dashboard" : "#";
+        $url_users_online = $is_admin ? "?classname=useronline&method=dashboard" : "#";
+        $url_courses = $is_admin ? "?classname=courses&method=dashboard" : "#";
+
         echo '
             <div class="element-content">
                 <div class="row">
                     <div class="col-sm-3">
                         <div class="element-box color_user">
                             <div class="label">' . get_string_kopere('dashboard_title_user') . '</div>
-                            <div class="value"><a href="?classname=users&method=dashboard">
+                            <div class="value"><a href="' . $url_users . '">
                                 ' . users::count_all(true) . ' / ' . users::count_all_learners(true) . '</a></div>
                         </div>
                     </div>
                     <div class="col-sm-3">
                         <div class="element-box color_online">
                             <div class="label">' . get_string_kopere('dashboard_title_online') . '</div>
-                            <div class="value"><a href="?classname=useronline&method=dashboard">
+                            <div class="value"><a href="' . $url_users_online . '">
                                 <span id="user-count-online">' . useronline::count(5) . '</span>
                                 / ' . useronline::count(60) . '</a></div>
                         </div>
@@ -91,20 +97,25 @@ class dashboard {
                     <div class="col-sm-3">
                         <div class="element-box color_course">
                             <div class="label">' . get_string_kopere('dashboard_title_course') . '</div>
-                            <div class="value"><a href="?classname=courses&method=dashboard">
+                            <div class="value"><a href="' . $url_courses . '">
                             ' . courses::count_all(true) . '
                                 / ' . courses::count_all_visibles(true) . '</a></div>
                         </div>
                     </div>
-                    <div class="col-sm-3">
-                        <div class="element-box color_disk">
-                            <div class="label">' . get_string_kopere('dashboard_title_disk') . '</div>
-                            <div class="value"><a href="?classname=reports&method=dashboard&type=server">
-                            ' . bytes_util::size_to_byte(files::count_all_space()) . '</a></div>
-                        </div>
+                    ';
+
+
+        if($is_admin) {
+            echo '<div class="col-sm-3">
+                    <div class="element-box color_disk">
+                        <div class="label">' . get_string_kopere('dashboard_title_disk') . '</div>
+                        <div class="value"><a href="?classname=reports&method=dashboard&type=server">
+                        ' . bytes_util::size_to_byte(files::count_all_space()) . '</a></div>
                     </div>
-                </div>
-            </div>';
+                </div>';
+        }
+    
+        echo '</div></div>';
     }
 
 
