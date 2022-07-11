@@ -67,11 +67,10 @@ class reports extends reports_admin {
             $params = [];
             
             if(!$is_admin) {
-                list($insql, $params) = $DB->get_in_or_equal([2, 6]);
-                $sql .= " AND id $insql ";
+                $sql .= " AND id IN(2, 6) ";
             }
 
-            if($type) {
+            if(isset($type)) {
                 $sql .= " AND type = :type ";
                 $params['type'] = $type;
             }
@@ -331,9 +330,8 @@ class reports extends reports_admin {
         $menus = array();
 
         if(!$is_admin) {
-            list($insql, $inparams) = $DB->get_in_or_equal([2, 6]);
-            $sql = "SELECT * FROM {kopere_dashboard_reportcat} WHERE enable = 1 AND id $insql";
-            $koperereportcats = $DB->get_records_sql($sql, $inparams);
+            $sql = "SELECT * FROM {kopere_dashboard_reportcat} WHERE enable = 1 AND id IN(2,6)";
+            $koperereportcats = $DB->get_records_sql($sql, null);
         }
         else {
             $koperereportcats = $DB->get_records('kopere_dashboard_reportcat', ['enable' => 1]);
