@@ -172,7 +172,7 @@ class course_access {
 
         if ( $export == 'xls' ) {
             $sql = "
-               SELECT DISTINCT SQL_CALC_FOUND_ROWS u.*
+               SELECT DISTINCT u.*
                  FROM {context} c
                  JOIN {role_assignments} ra ON ra.contextid = c.id
                  JOIN {user}             u  ON ra.userid    = u.id
@@ -182,7 +182,7 @@ class course_access {
                   AND c.instanceid   = :instanceid";
         } else {
             $sql = "
-               SELECT DISTINCT SQL_CALC_FOUND_ROWS u.*
+               SELECT DISTINCT u.*
                  FROM {context} c
                  JOIN {role_assignments} ra ON ra.contextid = c.id
                  JOIN {user}             u  ON ra.userid    = u.id
@@ -190,7 +190,7 @@ class course_access {
                 WHERE c.contextlevel = :contextlevel
 		          AND u.id      NOT IN ({$CFG->siteadmins})
                   AND c.instanceid   = :instanceid
-                LIMIT {$startLimit}, {$perPage}";
+                LIMIT {$startLimit} OFFSET {$perPage}";
         }
 
         $allusercourse = $DB->get_records_sql($sql,
@@ -199,7 +199,7 @@ class course_access {
                 'instanceid' => $cursosid
             ));
 
-        $total = $DB->get_record_sql ( "SELECT FOUND_ROWS() as num_itens" );
+        $total = sizeof($allusercourse);
 
         foreach ($allusercourse as $user) {
             echo '<tr>';
@@ -263,7 +263,7 @@ class course_access {
         echo '</table>';
 
         export::close();
-        pagination::create ( $atualPage, $total->num_itens, $perPage );
+        pagination::create ( $atualPage, $total, $perPage );
     }
 
     /**
